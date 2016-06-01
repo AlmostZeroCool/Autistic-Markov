@@ -59,9 +59,6 @@ class MarkovChain
 		dat = file.read.force_encoding 'BINARY'
 		file.close
 
-		#seperate line because I might remove this
-		#dat = dat.gsub(/[^A-Za-z0-9 ]/, '')
-
 		dat = dat.gsub("\n", ' ').split(' ')
 		seed(dat)
 	end
@@ -90,8 +87,6 @@ class MarkovChain
 		json_dat = JSON.parse(file.read)
 		@chain = json_dat
 	end
-
-	attr_reader :chain # here because debugging
 end
 
 chain = MarkovChain.new(2)
