@@ -1,4 +1,6 @@
 class MarkovChain
+	require 'json'
+
 	def initialize(layers=3)
 		@chain = {}
 		@layers = layers
@@ -8,6 +10,9 @@ class MarkovChain
 	# Polymorphism is bullshit
 	#                                                  I didn't really mean that btw
 	def seed(data)
+		if data.is_a? String
+			data = data.split(' ')
+		end
 		if not data.is_a? Array
 			# YELL LOUDLY
 			puts "NO FUCK YOU, YOU THINK YOU CAN COME INTO MY HOUSE WITH THIS FUCKING \"OH I DONT NEED TO GIVE AN ARRAY AS AN ARGUMENT\" BULLSHIT? FUCK YOU. FUCK OFF."
@@ -51,7 +56,7 @@ class MarkovChain
 			file = File.open(file, 'r')	
 		end
 
-		dat = file.read
+		dat = file.read.force_encoding 'BINARY'
 		file.close
 
 		#seperate line because I might remove this
@@ -64,36 +69,38 @@ class MarkovChain
 	def generate(len=rand(256))
 		generated = []
 		cur_seed = @chain.keys.sample(1).first
-		
+
 		len.times do |i|
-			generated += cur_seed
+			generated << cur_seed.first
 			begin
 				dat = @chain[cur_seed].sample(1).first
 			rescue Exception
 				break 
 			end
 			cur_seed.shift
-			cur_seed.unshift dat
+			cur_seed.push dat
 		end
 		generated
+	end
+
+	def import(file)
+		if file.is_a? String
+			file = File.open(file, 'rb')
+		end
+		json_dat = JSON.parse(file.read)
+		@chain = json_dat
 	end
 
 	attr_reader :chain # here because debugging
 end
 
-testchain = MarkovChain.new 5
+chain = MarkovChain.new(2)
 
 seed_files = Dir.glob('./seeds/*.txt')
 seed_files.each do |seed_file|
-	testchain.seed_file(seed_file)
+	chain.seed_file(seed_file)
 end
 
-dat = []
-until dat.size == 200 do
-	print "#{dat.size}\r"
-	faggot = testchain.generate(256)
-	if faggot.size > 10
-		dat << faggot.join(' ')
-	end
-end
-puts dat
+20.times do
+	puts chain.generate(256).join(' ')
+end 
